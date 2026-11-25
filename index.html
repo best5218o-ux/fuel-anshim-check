@@ -61,7 +61,7 @@ footer{font-size:12px;color:var(--sub);text-align:center;padding:20px}
 </head>
 <body>
 <header>
-<h1>현장연료 안심확인 <span class="ver">시제품 v0.3 · 2026-11-17</span></h1>
+<h1>현장연료 안심확인 <span class="ver">시제품 v0.4 · 2026-11-25</span></h1>
 <p>이동판매(홈로리) 석유의 「탱크 칸 → 호스 → 현장 장비」를 한 장의 디지털 확인서로 잇고, 공공데이터로 점검 우선순위를 짚는다.</p>
 </header>
 <nav>
@@ -2485,7 +2485,7 @@ const store={get(k){try{return JSON.parse(localStorage.getItem(k)||'null')}catch
 let LOG=store.get('kpqr_log')||[];
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');document.querySelectorAll('section').forEach(s=>s.classList.remove('on'));$('#'+b.dataset.t).classList.add('on');if(b.dataset.t==='s3')drawAll();if(b.dataset.t==='s4')drawLog();});
 // shop search
-const SH=KP.stations;let shopPick=null;
+const SH=[['[시연용 가상] 한빛석유 이동판매','시연','가상 업소']].concat(KP.stations);let shopPick=null;
 $('#f_shop').addEventListener('input',e=>{shopPick=null;const q=e.target.value.trim();const L=$('#shopList');if(q.length<2){L.style.display='none';return}const r=SH.filter(s=>s[0].includes(q)).slice(0,30);L.innerHTML=r.map((s,i)=>`<div data-i="${SH.indexOf(s)}">${esc(s[0])} <span style="color:#888">${esc(s[1])} ${esc(s[2])}</span></div>`).join('')||'<div style="color:#888">목록에 없음 — 그대로 입력 가능(주의 표시)</div>';L.style.display='block'});
 $('#shopList').addEventListener('click',e=>{const d=e.target.closest('div[data-i]');if(!d)return;shopPick=SH[+d.dataset.i];$('#f_shop').value=shopPick[0];$('#shopList').style.display='none'});
 document.addEventListener('click',e=>{if(!e.target.closest('.rel'))$('#shopList').style.display='none'});
@@ -2503,7 +2503,7 @@ function rules(v){const out=[];let block=false;
  else out.push(['ok','직전 유종과 같음 — 호스 잔량 혼입 위험 낮음.']);
  if(v.comp==='dual'){ if(!v.insp){out.push(['bad','경유·등유를 한 차량에 함께 실었는데 칸막이·밸브 점검일이 없음 — 발급 보류(칸막이 오작동 혼유 사례).']);block=true}
    else{const d=(Date.now()-new Date(v.insp))/864e5; if(d<-1){out.push(['bad','칸막이 점검일이 미래 날짜 — 입력 확인. 발급 보류.']);block=true} else if(d>365){out.push(['warn',`칸막이 점검 후 ${Math.round(d)}일 경과 — 다음 소방 점검·자체 점검 때 확인 권고.`])}else out.push(['ok',`칸막이 점검 ${Math.round(d)}일 전.`])}}
- if(!v.shopListed)out.push(['warn','공개된 전산보고 주유소 목록(3,889곳)에는 없음 — 일반판매소·비전산 주유소일 수 있다. 실제 운영에서는 관리원 석유판매업 등록 DB로 확인한다.']); else out.push(['ok',`전산보고 주유소 목록에 있는 업소(${esc(v.shopArea)}).`]);
+ if(!v.shopListed)out.push(['warn','공개된 전산보고 주유소 목록(3,889곳)에는 없음 — 일반판매소·비전산 주유소일 수 있다. 실제 운영에서는 관리원 석유판매업 등록 DB로 확인한다.']); else if(v.shopArea.startsWith('시연'))out.push(['ok','시연용 가상 업소 — 실제 운영에서는 관리원 석유판매업 등록 DB와 대조한다.']); else out.push(['ok',`전산보고 주유소 목록에 있는 업소(${esc(v.shopArea)}).`]);
  if(!v.sample)out.push(['warn','보존 시료병 없음 — 문제가 생기면 판매 시점 연료를 증명하기 어렵다.']);
  return {out,block}}
 function verdictHTML(r){const cls=r.block?'v-bad':(r.out.some(x=>x[0]!=='ok')?'v-warn':'v-ok');const head=r.block?'발급 보류':(cls==='v-warn'?'발급 — 주의 표시 포함':'발급 — 이상 없음');return `<div class="verdict ${cls}"><b>${head}</b><ul style="margin:6px 0 0;padding-left:18px">${r.out.map(x=>`<li><span class="tag ${x[0]}">${x[0]==='ok'?'정상':x[0]==='warn'?'주의':'차단'}</span>${x[1]}</li>`).join('')}</ul></div>`}
